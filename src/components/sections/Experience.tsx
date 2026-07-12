@@ -37,7 +37,7 @@ export function Experience() {
 
         <div className="mt-14 grid gap-px overflow-hidden rounded-lg bg-linen/10 sm:grid-cols-2 lg:grid-cols-3">
           {restaurant.highlights.map((item, index) => {
-            const Icon = highlightIcons[index % highlightIcons.length];
+            const Icon = highlightIcons[index % highlightIcons.length] ?? UtensilsCrossed;
             return (
               <motion.div
                 key={item}
