@@ -81,7 +81,7 @@ export function PhotoLightbox({ photos, gridClassName, masonry = false }: PhotoL
       </div>
 
       <AnimatePresence>
-        {openIndex !== null && (
+        {openIndex !== null && photos[openIndex] && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -118,8 +118,8 @@ export function PhotoLightbox({ photos, gridClassName, masonry = false }: PhotoL
               className="relative h-full max-h-[85vh] w-full max-w-3xl"
             >
               <Image
-                src={photos[openIndex].src}
-                alt={photos[openIndex].alt}
+                src={photos[openIndex]!.src}
+                alt={photos[openIndex]!.alt}
                 fill
                 sizes="90vw"
                 className="object-contain"
@@ -137,7 +137,7 @@ export function PhotoLightbox({ photos, gridClassName, masonry = false }: PhotoL
             </button>
 
             <p className="absolute bottom-6 left-1/2 max-w-md -translate-x-1/2 text-center text-sm text-linen/70">
-              {photos[openIndex].alt}
+              {photos[openIndex]!.alt}
             </p>
           </motion.div>
         )}
