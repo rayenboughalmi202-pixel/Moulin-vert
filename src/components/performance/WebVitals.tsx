@@ -5,16 +5,14 @@ import { useEffect } from "react";
 /**
  * Web Vitals Analytics — Étape 6
  *
- * Envoie les Core Web Vitals (LCP, FID, CLS, etc.) à Vercel Analytics
- * pour monitoring en production. Optionnel mais recommandé pour la
- * performance monitoring.
+ * Envoie les Core Web Vitals (LCP, CLS, FCP, TTFB, INP/FID) à un endpoint
+ * interne pour monitoring en production.
  *
- * Metriques capturées :
- * - LCP (Largest Contentful Paint) : quand le contenu principal est visible
- * - FID (First Input Delay) : latence de la première interaction
- * - CLS (Cumulative Layout Shift) : décalages visuels inattendus
- * - FCP (First Contentful Paint) : premier élément visible
- * - TTFB (Time to First Byte) : temps avant premier octet
+ * Note : selon la version de la librairie "web-vitals" installée, les noms
+ * de fonctions exportées changent (onFID a été remplacé par onINP dans les
+ * versions récentes). Le code ci-dessous appelle uniquement les fonctions
+ * réellement présentes dans le module, pour rester compatible quelle que
+ * soit la version installée.
  */
 export function WebVitals() {
   useEffect(() => {
@@ -22,7 +20,6 @@ export function WebVitals() {
     if (process.env.NODE_ENV !== "production") return;
 
     const reportWebVitals = async (metric: any) => {
-      // Option 1 : Envoyer à Vercel Analytics (automatique)
       const body = JSON.stringify({
         name: metric.name,
         value: metric.value,
@@ -31,11 +28,9 @@ export function WebVitals() {
         id: metric.id,
       });
 
-      // Utiliser sendBeacon pour une fiabilité maximale
       if (navigator.sendBeacon) {
         navigator.sendBeacon("/api/analytics", body);
       } else {
-        // Fallback pour les anciens navigateurs
         fetch("/api/analytics", {
           method: "POST",
           body,
@@ -46,17 +41,20 @@ export function WebVitals() {
       }
     };
 
-    try {
-      import("web-vitals").then(({ getCLS, getFID, getFCP, getLCP, getTTFB }) => {
-        getCLS(reportWebVitals);
-        getFID(reportWebVitals);
-        getFCP(reportWebVitals);
-        getLCP(reportWebVitals);
-        getTTFB(reportWebVitals);
+    import("web-vitals")
+      .then((webVitals: Record<string, any>) => {
+        webVitals.onCLS?.(reportWebVitals);
+        webVitals.onFCP?.(reportWebVitals);
+        webVitals.onLCP?.(reportWebVitals);
+        webVitals.onTTFB?.(reportWebVitals);
+        // onFID est obsolète depuis web-vitals v4, remplacé par onINP.
+        // On tente les deux, un seul des deux existera selon la version.
+        webVitals.onINP?.(reportWebVitals);
+        webVitals.onFID?.(reportWebVitals);
+      })
+      .catch(() => {
+        // web-vitals n'est pas installé, c'est OK
       });
-    } catch {
-      // web-vitals n'est pas installé, c'est OK
-    }
   }, []);
 
   return null;
