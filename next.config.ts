@@ -4,7 +4,7 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
 
   /**
-   * Images optimization — Étape 6
+   * Images optimization
    * Support moderne formats (AVIF, WebP) + responsive
    */
   images: {
@@ -31,7 +31,6 @@ const nextConfig: NextConfig = {
    */
   trailingSlash: false,
   compress: true,
-  swcMinify: true,
 
   /**
    * Headers personnalisés pour performance
@@ -96,45 +95,16 @@ const nextConfig: NextConfig = {
    * Optimisations du build
    */
   productionBrowserSourceMaps: false,
-  optimizeFonts: true,
-  optimizePackageImports: [
-    "lucide-react",
-    "firebase",
-    "framer-motion",
-  ],
-
-  /**
-   * Experimental features
-   */
   experimental: {
-    optimizePackageImports: ["lucide-react"],
-    esmExternals: true,
+    optimizePackageImports: ["lucide-react", "firebase", "framer-motion"],
   },
 
   /**
-   * Webpack
+   * Turbopack (bundler par défaut depuis Next.js 15+).
+   * Configuration vide = comportement par défaut, mais nécessaire pour
+   * éviter le conflit avec une config webpack personnalisée.
    */
-  webpack: (config, { isServer }) => {
-    if (!isServer) {
-      config.optimization = {
-        ...config.optimization,
-        runtimeChunk: "single",
-        splitChunks: {
-          cacheGroups: {
-            vendor: {
-              test: /[\\/]node_modules[\\/]/,
-              name: "vendors",
-              priority: 10,
-              reuseExistingChunk: true,
-              enforce: true,
-            },
-          },
-        },
-      };
-    }
-    return config;
-  },
+  turbopack: {},
 };
 
 export default nextConfig;
-
