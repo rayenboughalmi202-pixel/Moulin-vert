@@ -1,0 +1,64 @@
+rules_version = '2';
+
+// Règles Firestore — Moulin Vert Béja
+//
+// Étape 4 : seule la création de réservations est ouverte au public
+// (formulaire du site), avec validation stricte des champs envoyés.
+//
+// Étape 5 : le dashboard admin (`/admin/*`) est protégé par Firebase
+// Authentication (comptes créés manuellement dans la console — aucune
+// inscription publique). On considère ici que tout compte authentifié
+// est un membre de l'équipe du restaurant : le nombre de comptes admin
+// reste volontairement petit et géré à la main. Si l'équipe grandit et
+// qu'il faut distinguer des rôles, ajouter un champ personnalisé
+// (custom claim) sur le token et vérifier `request.auth.token.admin`
+// à la place de `request.auth != null` ci-dessous.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /reservations/{reservationId} {
+      // Lecture, modification (changement de statut) et suppression
+      // réservées au dashboard admin.
+      allow read, update, delete: if request.auth != null;
+
+      // Création ouverte au public (formulaire de réservation du site),
+      // avec validation stricte des champs envoyés.
+      allow create: if
+        request.resource.data.keys().hasAll(
+          ["fullName", "phone", "date", "timeSlot", "partySize", "status", "createdAt"]
+        ) &&
+        request.resource.data.fullName is string &&
+        request.resource.data.fullName.size() >= 3 &&
+        request.resource.data.fullName.size() <= 80 &&
+        request.resource.data.phone is string &&
+        request.resource.data.phone.size() >= 8 &&
+        request.resource.data.date is string &&
+        request.resource.data.timeSlot is string &&
+        request.resource.data.partySize is int &&
+        request.resource.data.partySize >= 1 &&
+        request.resource.data.partySize <= 20 &&
+        request.resource.data.status == "pending" &&
+        request.resource.data.createdAt == request.time;
+    }
+
+    // Réglages publics (horaires, créneaux) : lisibles par tous (site
+    // public et dashboard), modifiables uniquement par un admin connecté.
+    match /settings/{settingId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    // Carte du restaurant : lecture publique, écriture réservée au dashboard.
+    match /menu/{itemId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    // Galerie photo : lecture publique, écriture réservée au dashboard.
+    match /gallery/{imageId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+  }
+}

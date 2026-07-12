@@ -1,0 +1,15 @@
+# robots.txt — Directives pour les crawlers
+# Moulin Vert Béja
+
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /admin/*
+Disallow: /.env*
+Disallow: /node_modules/
+
+# Désactiver l'accès aux routes API privées (si applicable)
+Disallow: /api/private/
+
+# Sitemap
+Sitemap: https://moulinvertbeja.tn/sitemap.xml
